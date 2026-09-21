@@ -33,13 +33,14 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 #hotbar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;padding:2px;
   background:rgba(20,20,20,.65);border:2px solid #000;z-index:5;max-width:98vw;overflow-x:auto}
-.slot{position:relative;width:42px;height:42px;border:2px solid #4a4a4a;background:rgba(130,130,130,.3);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.slot{position:relative;width:48px;height:48px;border:2px solid #4a4a4a;background:rgba(130,130,130,.3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 2px;cursor:pointer}
 .slot.sel{border-color:#fff;background:rgba(255,255,255,.3);z-index:1;box-shadow:0 0 0 2px #000}
-.slot canvas{width:32px;height:32px;image-rendering:pixelated}
-.slot i{position:absolute;left:2px;top:0;font-style:normal;font-size:9px;color:#e6e6e6;text-shadow:1px 1px 0 #000}
+.slot.inv-btn{background:rgba(80,140,200,0.4);border-color:#71a5de;font-size:22px}
+.slot canvas{width:36px;height:36px;image-rendering:pixelated}
+.slot i{position:absolute;left:2px;top:0;font-style:normal;font-size:10px;color:#e6e6e6;text-shadow:1px 1px 0 #000}
 
-/* ===== Touch Controls Overlay ===== */
+/* Touch Controls */
 #touchOverlay{position:fixed;inset:0;pointer-events:none;z-index:6;display:none}
 .t-btn{position:absolute;background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.5);
   color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;
@@ -47,25 +48,21 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
   touch-action:none}
 .t-btn:active{background:rgba(255,255,255,0.4)}
 
-/* D-Pad Left Side */
 #dpad{position:absolute;left:15px;bottom:65px;width:130px;height:130px;pointer-events:none}
 #btnW{top:0;left:42px;width:46px;height:46px}
 #btnS{bottom:0;left:42px;width:46px;height:46px}
 #btnA{top:42px;left:0;width:46px;height:46px}
 #btnD{top:42px;right:0;width:46px;height:46px}
 
-/* Action Buttons Right Side */
 #actionBtns{position:absolute;right:15px;bottom:65px;width:140px;height:140px;pointer-events:none}
-#btnBreak{top:0;right:0;width:56px;height:56px;background:rgba(200,50,50,0.4)}
-#btnPlace{top:0;left:0;width:56px;height:56px;background:rgba(50,180,50,0.4)}
-#btnJump{bottom:10px;right:10px;width:52px;height:52px;background:rgba(255,255,255,0.25)}
-#btnFly{bottom:10px;left:10px;width:46px;height:46px;font-size:12px}
-#btnPal{position:absolute;right:15px;top:15px;width:46px;height:46px;font-size:20px}
+#btnBreak{top:0;right:0;width:58px;height:58px;background:rgba(200,50,50,0.4)}
+#btnPlace{top:0;left:0;width:58px;height:58px;background:rgba(50,180,50,0.4)}
+#btnJump{bottom:0px;right:28px;width:60px;height:60px;background:rgba(255,255,255,0.3);border-radius:50%}
 
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
   background:rgba(8,12,8,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:10}
 .panel{background:#2b2b2b;border:4px solid #000;box-shadow:inset 3px 3px 0 #5d5d5d,inset -3px -3px 0 #151515;
-  padding:20px 24px;width:min(94vw,700px);max-height:96vh;overflow:auto;text-align:center}
+  padding:20px 24px;width:min(94vw,750px);max-height:92vh;overflow:auto;text-align:center}
 .panel.small{width:min(90vw,440px)}
 h1{font-size:clamp(32px,8vw,76px);letter-spacing:4px;line-height:1;text-shadow:4px 4px 0 #444}
 h1 span{color:#83cb4c;text-shadow:4px 4px 0 #2c4a17}
@@ -85,11 +82,14 @@ button.big{background:#5a9038;box-shadow:inset 3px 3px 0 #8fce61,inset -3px -3px
 #loadFill{height:100%;width:0;background:#83cb4c}
 #loadMsg{font-size:13px;color:#bdbdbd;min-height:16px}
 .hint{font-size:13px;color:#bdbdbd}
-#palGrid{display:grid;grid-template-columns:repeat(5,64px);gap:6px;justify-content:center;margin:14px 0 8px}
+
+/* Expanded Scrollable Palette Grid */
+#palGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px;
+  justify-content:center;margin:14px 0 8px;max-height:60vh;overflow-y:auto;padding:6px;background:#1e1e1e;border:2px solid #000}
 .pitem{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:2px solid #4a4a4a;
   background:rgba(130,130,130,.25);cursor:pointer;font-size:9px;line-height:1.1;min-height:66px}
 .pitem canvas{width:32px;height:32px;image-rendering:pixelated}
-@media (max-width:560px){.controls{grid-template-columns:1fr}#palGrid{grid-template-columns:repeat(4,64px)}}
+@media (max-width:560px){.controls{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -114,15 +114,13 @@ button.big{background:#5a9038;box-shadow:inset 3px 3px 0 #8fce61,inset -3px -3px
     <div id="btnBreak" class="t-btn">⛏️</div>
     <div id="btnPlace" class="t-btn">🧱</div>
     <div id="btnJump" class="t-btn">▲</div>
-    <div id="btnFly" class="t-btn">✈️</div>
   </div>
-  <div id="btnPal" class="t-btn">🎒</div>
 </div>
 
 <div id="palette" class="overlay hidden">
   <div class="panel">
-    <h2>Block palette</h2>
-    <p class="hint">Click/Tap a block to select it</p>
+    <h2>Select Block (100+ Available)</h2>
+    <p class="hint">Tap a block to put it in your active hotbar slot</p>
     <div id="palGrid"></div>
     <button id="palClose">Close</button>
   </div>
@@ -131,13 +129,13 @@ button.big{background:#5a9038;box-shadow:inset 3px 3px 0 #8fce61,inset -3px -3px
 <div id="menu" class="overlay hidden">
   <div class="panel">
     <h1>MINI<span>CRAFT</span></h1>
-    <p class="sub">A tiny voxel sandbox. Touch & Keyboard Controls Supported!</p>
+    <p class="sub">100+ Blocks, Auto-Jump, Villages & Dynamic Water!</p>
     <div><button id="playBtn" class="big">Play</button><button id="newBtn">New world</button></div>
     <div class="controls">
-      <div><b>Touch Controls</b><span>On Screen Buttons</span></div>
+      <div><b>Double Tap Jump</b><span>Toggle Fly Mode</span></div>
+      <div><b>Auto-Jump</b><span>Step up 1 block</span></div>
+      <div><b>Hotbar</b><span>4 Blocks + 🎒 Bag</span></div>
       <div><b>Drag Screen</b><span>Look around</span></div>
-      <div><b>W A S D</b><span>Move (PC)</span></div>
-      <div><b>Left / Right Click</b><span>Break / Place</span></div>
     </div>
     <p id="menuNote"></p>
   </div>
@@ -158,39 +156,58 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 
 /* ============================== constants ============================== */
-const CS = 16, CXN = 63, CZN = 63;          // Chunk size: Expanded to 63x63 chunks (1008x1008 blocks)
-const W = CXN * CS, D = CZN * CS, H = 96;   // World dimensions: 1008 x 1008, Height: 96
-const SEA = 22;                             // Water fills up to this y
-const TS = 16, AT = 8, ATW = TS * AT;       // Texture tile size, atlas tiles per row, atlas px
+const CS = 16, CXN = 63, CZN = 63;          
+const W = CXN * CS, D = CZN * CS, H = 96;   
+const SEA = 22;                             
+const TS = 16, AT = 16, ATW = TS * AT;     
 const EYE = 1.62, PW = 0.3, PH = 1.8, REACH = 5.5, DAY_LEN = 360;
-const SAVE_KEY = 'minicraft-single-file-v1';
+const SAVE_KEY = 'minicraft-single-file-v2';
 
-/* ============================== blocks ============================== */
-const AIR=0, GRASS=1, DIRT=2, STONE=3, COBBLE=4, SAND=5, LOG=6, LEAVES=7, PLANKS=8,
-      WATER=9, GLASS=10, BRICK=11, SNOW=12, COAL=13, GOLD=14,
-      IRON=15, DIAMOND=16, LAVA=17, WOOL=18;
+/* ============================== 100+ BLOCKS DEFINITION ============================== */
+const AIR=0, GRASS=1, DIRT=2, STONE=3, COBBLE=4, MOSSY_COBBLE=5, SAND=6, RED_SAND=7, GRAVEL=8, CLAY=9, MUD=10,
+      OAK_LOG=11, OAK_PLANKS=12, OAK_LEAVES=13, BIRCH_LOG=14, BIRCH_PLANKS=15, BIRCH_LEAVES=16,
+      SPRUCE_LOG=17, SPRUCE_PLANKS=18, SPRUCE_LEAVES=19, JUNGLE_LOG=20, JUNGLE_PLANKS=21, ACACIA_LOG=22, ACACIA_PLANKS=23,
+      GLASS=24, TINTED_GLASS=25, BRICKS=26, STONE_BRICKS=27, MOSSY_STONE_BRICKS=28, CRACKED_STONE_BRICKS=29, CHISELED_STONE_BRICKS=30,
+      GRANITE=31, DIORITE=32, ANDESITE=33, SANDSTONE=34, SMOOTH_SANDSTONE=35, RED_SANDSTONE=36, PRISMARINE=37, NETHER_BRICKS=38, END_STONE=39, OBSIDIAN=40,
+      COAL_ORE=41, IRON_ORE=42, GOLD_ORE=43, DIAMOND_ORE=44, EMERALD_ORE=45, REDSTONE_ORE=46, LAPIS_ORE=47, COPPER_ORE=48, AMETHYST=49, BEDROCK=50,
+      COAL_BLOCK=51, IRON_BLOCK=52, GOLD_BLOCK=53, DIAMOND_BLOCK=54, EMERALD_BLOCK=55, REDSTONE_BLOCK=56, LAPIS_BLOCK=57, COPPER_BLOCK=58, GLOWSTONE=59, SEA_LANTERN=60,
+      BOOKSHELF=61, CRAFTING_TABLE=62, FURNACE=63, PUMPKIN=64, JACK_O_LANTERN=65, MELON=66, HAY_BALE=67, CACTUS=68, SNOW_BLOCK=69, ICE=70,
+      PACKED_ICE=71, BLUE_ICE=72, WHITE_WOOL=73, ORANGE_WOOL=74, MAGENTA_WOOL=75, LIGHT_BLUE_WOOL=76, YELLOW_WOOL=77, LIME_WOOL=78, PINK_WOOL=79, GRAY_WOOL=80,
+      LIGHT_GRAY_WOOL=81, CYAN_WOOL=82, PURPLE_WOOL=83, BLUE_WOOL=84, BROWN_WOOL=85, GREEN_WOOL=86, RED_WOOL=87, BLACK_WOOL=88,
+      WHITE_CONCRETE=89, ORANGE_CONCRETE=90, YELLOW_CONCRETE=91, LIME_CONCRETE=92, CYAN_CONCRETE=93, BLUE_CONCRETE=94, PURPLE_CONCRETE=95, RED_CONCRETE=96, BLACK_CONCRETE=97,
+      QUARTZ_BLOCK=98, SMOOTH_QUARTZ=99, TNT=100, WATER=101, LAVA=102;
 
 const BLOCKS = [
   null,
-  {n:'Grass Block', t:[0,2,1],  h:.6},
-  {n:'Dirt',        t:[2,2,2],  h:.5},
-  {n:'Stone',       t:[3,3,3],  h:1.5},
-  {n:'Cobblestone', t:[4,4,4],  h:2},
-  {n:'Sand',        t:[5,5,5],  h:.5},
-  {n:'Oak Log',     t:[7,7,6],  h:1.2},
-  {n:'Leaves',      t:[8,8,8],  h:.2},
-  {n:'Planks',      t:[9,9,9],  h:1},
-  {n:'Water',       t:[10,10,10], liquid:true},
-  {n:'Glass',       t:[11,11,11], h:.3, clear:true},
-  {n:'Bricks',      t:[12,12,12], h:2},
-  {n:'Snow',        t:[13,13,13], h:.3},
-  {n:'Coal Ore',    t:[14,14,14], h:2},
-  {n:'Gold Ore',    t:[15,15,15], h:2.5},
-  {n:'Iron Ore',    t:[16,16,16], h:2.5},
-  {n:'Diamond Ore', t:[17,17,17], h:3},
-  {n:'Lava',        t:[18,18,18], liquid:true},
-  {n:'Red Wool',    t:[19,19,19], h:0.8}
+  {n:'Grass Block', t:[0,2,1], h:.6}, {n:'Dirt', t:[2,2,2], h:.5}, {n:'Stone', t:[3,3,3], h:1.5}, {n:'Cobblestone', t:[4,4,4], h:2},
+  {n:'Mossy Cobble', t:[5,5,5], h:2}, {n:'Sand', t:[6,6,6], h:.5}, {n:'Red Sand', t:[7,7,7], h:.5}, {n:'Gravel', t:[8,8,8], h:.6},
+  {n:'Clay Block', t:[9,9,9], h:.6}, {n:'Mud Block', t:[10,10,10], h:.5}, {n:'Oak Log', t:[12,12,11], h:1.2}, {n:'Oak Planks', t:[13,13,13], h:1},
+  {n:'Oak Leaves', t:[14,14,14], h:.2}, {n:'Birch Log', t:[16,16,15], h:1.2}, {n:'Birch Planks', t:[17,17,17], h:1}, {n:'Birch Leaves', t:[18,18,18], h:.2},
+  {n:'Spruce Log', t:[20,20,19], h:1.2}, {n:'Spruce Planks', t:[21,21,21], h:1}, {n:'Spruce Leaves', t:[22,22,22], h:.2}, {n:'Jungle Log', t:[24,24,23], h:1.2},
+  {n:'Jungle Planks', t:[25,25,25], h:1}, {n:'Acacia Log', t:[27,27,26], h:1.2}, {n:'Acacia Planks', t:[28,28,28], h:1},
+  {n:'Glass', t:[29,29,29], h:.3, clear:true}, {n:'Tinted Glass', t:[30,30,30], h:.4, clear:true}, {n:'Bricks', t:[31,31,31], h:2},
+  {n:'Stone Bricks', t:[32,32,32], h:2}, {n:'Mossy Stone Bricks', t:[33,33,33], h:2}, {n:'Cracked Stone Bricks', t:[34,34,34], h:2}, {n:'Chiseled Stone Bricks', t:[35,35,35], h:2},
+  {n:'Granite', t:[36,36,36], h:1.8}, {n:'Diorite', t:[37,37,37], h:1.8}, {n:'Andesite', t:[38,38,38], h:1.8}, {n:'Sandstone', t:[40,40,39], h:1.2},
+  {n:'Smooth Sandstone', t:[40,40,40], h:1.2}, {n:'Red Sandstone', t:[42,42,41], h:1.2}, {n:'Prismarine', t:[43,43,43], h:2}, {n:'Nether Bricks', t:[44,44,44], h:2},
+  {n:'End Stone', t:[45,45,45], h:2}, {n:'Obsidian', t:[46,46,46], h:5}, {n:'Coal Ore', t:[47,47,47], h:2}, {n:'Iron Ore', t:[48,48,48], h:2.5},
+  {n:'Gold Ore', t:[49,49,49], h:2.5}, {n:'Diamond Ore', t:[50,50,50], h:3}, {n:'Emerald Ore', t:[51,51,51], h:3}, {n:'Redstone Ore', t:[52,52,52], h:2},
+  {n:'Lapis Ore', t:[53,53,53], h:2.5}, {n:'Copper Ore', t:[54,54,54], h:2}, {n:'Amethyst Block', t:[55,55,55], h:2}, {n:'Bedrock', t:[56,56,56], h:99},
+  {n:'Coal Block', t:[57,57,57], h:2}, {n:'Iron Block', t:[58,58,58], h:3}, {n:'Gold Block', t:[59,59,59], h:3}, {n:'Diamond Block', t:[60,60,60], h:4},
+  {n:'Emerald Block', t:[61,61,61], h:4}, {n:'Redstone Block', t:[62,62,62], h:2, light:0.6}, {n:'Lapis Block', t:[63,63,63], h:3}, {n:'Copper Block', t:[64,64,64], h:2.5},
+  {n:'Glowstone', t:[65,65,65], h:1, light:1.0}, {n:'Sea Lantern', t:[66,66,66], h:1, light:1.0}, {n:'Bookshelf', t:[67,67,68], h:1.5}, {n:'Crafting Table', t:[70,69,13], h:1.5},
+  {n:'Furnace', t:[72,71,71], h:2}, {n:'Pumpkin', t:[74,74,73], h:1}, {n:'Jack o Lantern', t:[75,74,73], h:1, light:1.0}, {n:'Melon Block', t:[77,77,76], h:1},
+  {n:'Hay Bale', t:[79,79,78], h:1}, {n:'Cactus', t:[81,81,80], h:1}, {n:'Snow Block', t:[82,82,82], h:.3}, {n:'Ice', t:[83,83,83], h:.3, clear:true},
+  {n:'Packed Ice', t:[84,84,84], h:.5}, {n:'Blue Ice', t:[85,85,85], h:.6},
+  {n:'White Wool', t:[86,86,86], h:.8}, {n:'Orange Wool', t:[87,87,87], h:.8}, {n:'Magenta Wool', t:[88,88,88], h:.8}, {n:'Light Blue Wool', t:[89,89,89], h:.8},
+  {n:'Yellow Wool', t:[90,90,90], h:.8}, {n:'Lime Wool', t:[91,91,91], h:.8}, {n:'Pink Wool', t:[92,92,92], h:.8}, {n:'Gray Wool', t:[93,93,93], h:.8},
+  {n:'Light Gray Wool', t:[94,94,94], h:.8}, {n:'Cyan Wool', t:[95,95,95], h:.8}, {n:'Purple Wool', t:[96,96,96], h:.8}, {n:'Blue Wool', t:[97,97,97], h:.8},
+  {n:'Brown Wool', t:[98,98,98], h:.8}, {n:'Green Wool', t:[99,99,99], h:.8}, {n:'Red Wool', t:[100,100,100], h:.8}, {n:'Black Wool', t:[101,101,101], h:.8},
+  {n:'White Concrete', t:[102,102,102], h:1.5}, {n:'Orange Concrete', t:[103,103,103], h:1.5}, {n:'Yellow Concrete', t:[104,104,104], h:1.5}, {n:'Lime Concrete', t:[105,105,105], h:1.5},
+  {n:'Cyan Concrete', t:[106,106,106], h:1.5}, {n:'Blue Concrete', t:[107,107,107], h:1.5}, {n:'Purple Concrete', t:[108,108,108], h:1.5}, {n:'Red Concrete', t:[109,109,109], h:1.5},
+  {n:'Black Concrete', t:[110,110,110], h:1.5}, {n:'Quartz Block', t:[111,111,111], h:2}, {n:'Smooth Quartz', t:[112,112,112], h:2}, {n:'TNT', t:[114,114,113], h:1},
+  {n:'Water', t:[115,115,115], liquid:true}, {n:'Lava', t:[116,116,116], liquid:true, light:1.0}
 ];
+
 const OPAQUE = new Uint8Array(256), SOLID = new Uint8Array(256), LIQ = new Uint8Array(256);
 for (let i = 1; i < BLOCKS.length; i++) {
   const b = BLOCKS[i];
@@ -200,7 +217,7 @@ for (let i = 1; i < BLOCKS.length; i++) {
 }
 const PLACEABLE = []; for (let i = 1; i < BLOCKS.length; i++) if (!BLOCKS[i].liquid) PLACEABLE.push(i);
 
-/* ============================== texture atlas ============================== */
+/* ============================== TEXTURE ATLAS GENERATOR ============================== */
 const atlas = document.createElement('canvas'); atlas.width = ATW; atlas.height = ATW;
 const actx = atlas.getContext('2d');
 const aimg = actx.createImageData(ATW, ATW);
@@ -226,64 +243,112 @@ function tileGen(idx, fn) {
   }
 }
 const vr = (c, a, R) => { const d = (R() - .5) * 2 * a; return [c[0] + d, c[1] + d, c[2] + d]; };
-tileGen(0, (x, y, R) => vr([104,168,60], 16, R));
-tileGen(1, (x, y, R) => (y < 3 + (R() < .4 ? 1 : 0)) ? vr([104,168,60], 16, R) : vr([136,98,68], 14, R));
-tileGen(2, (x, y, R) => R() < .08 ? vr([112,80,55], 8, R) : vr([136,98,68], 14, R));
-tileGen(3, (x, y, R) => R() < .07 ? vr([104,104,104], 8, R) : vr([128,128,128], 11, R));
-tileGen(4, (x, y, R) => {
-  const row = (y / 5) | 0;
-  const mort = (y % 5 === 4) || (((x + (row % 2) * 4) % 8) === 7);
-  return mort ? vr([84,84,84], 6, R) : vr([140,140,140], 18, R);
-});
-tileGen(5, (x, y, R) => vr([220,208,162], 9, R));
-tileGen(6, (x, y, R) => {
-  const c = vr([108,84,52], 10, R);
-  return (x % 4 === 0 || x % 7 === 3) ? [c[0]-20, c[1]-16, c[2]-12] : c;
-});
-tileGen(7, (x, y, R) => {
-  const d = Math.max(Math.abs(x - 7.5), Math.abs(y - 7.5));
-  if (d >= 7) return vr([104,82,50], 8, R);
-  return (Math.floor(d) % 2) ? vr([180,144,88], 8, R) : vr([158,124,72], 8, R);
-});
-tileGen(8, (x, y, R) => {
-  const r = R();
-  if (r < .22) return vr([34,96,28], 6, R);
-  if (r < .38) return vr([96,168,64], 8, R);
-  return vr([58,130,42], 10, R);
-});
-tileGen(9, (x, y, R) => {
-  const seam = (y % 4 === 3) || (x === ((((y / 4) | 0) % 2) ? 3 : 11));
-  const c = vr([170,136,84], 8, R);
-  return seam ? [c[0]-30, c[1]-28, c[2]-24] : c;
-});
-tileGen(10, (x, y, R) => {
-  if (x === 0 && y === 0) return [38,96,205,178];
-  const r = R();
-  return r < .1 ? [88,146,235,178] : r < .2 ? [30,80,190,178] : [38,96,205,178];
-});
-tileGen(11, (x, y) => {
-  if (x === 0 || y === 0 || x === 15 || y === 15) return [206,232,244,215];
-  if (x === y && ((x >= 3 && x <= 6) || (x >= 9 && x <= 11))) return [255,255,255,150];
-  return [200,225,240,0];
-});
-tileGen(12, (x, y, R) => {
-  const row = (y / 4) | 0;
-  const mort = (y % 4 === 3) || (((x + (row % 2) * 4) % 8) === 0);
-  return mort ? vr([196,190,180], 6, R) : vr([160,74,58], 14, R);
-});
-tileGen(13, (x, y, R) => vr([242,246,250], 5, R));
-function ore(idx, col, pts) {
-  tileGen(idx, (x, y, R) => {
-    if (pts.some(p => p[0] === x && p[1] === y)) return vr(col, 14, R);
-    return R() < .07 ? vr([104,104,104], 8, R) : vr([128,128,128], 11, R);
-  });
+
+// Basic Nature
+tileGen(0, (x, y, R) => vr([104,168,60], 16, R)); // Grass Top
+tileGen(1, (x, y, R) => (y < 3 + (R() < .4 ? 1 : 0)) ? vr([104,168,60], 16, R) : vr([136,98,68], 14, R)); // Grass Side
+tileGen(2, (x, y, R) => vr([136,98,68], 14, R)); // Dirt
+tileGen(3, (x, y, R) => vr([128,128,128], 12, R)); // Stone
+tileGen(4, (x, y, R) => ((y % 5 === 4) || (((x + ((y/5|0) % 2) * 4) % 8) === 7)) ? vr([84,84,84], 6, R) : vr([140,140,140], 18, R)); // Cobble
+tileGen(5, (x, y, R) => R() < 0.2 ? vr([70,130,50], 15, R) : vr([130,130,130], 15, R)); // Mossy Cobble
+tileGen(6, (x, y, R) => vr([220,208,162], 9, R)); // Sand
+tileGen(7, (x, y, R) => vr([190,100,50], 10, R)); // Red Sand
+tileGen(8, (x, y, R) => vr([140,130,130], 18, R)); // Gravel
+tileGen(9, (x, y, R) => vr([160,170,185], 8, R)); // Clay
+tileGen(10, (x, y, R) => vr([90,70,55], 10, R)); // Mud
+
+// Woods & Trees
+function genLog(topIdx, sideIdx, ringCol, barkCol) {
+  tileGen(topIdx, (x, y, R) => { const d = Math.hypot(x-7.5, y-7.5); return (Math.floor(d)%2)?vr(ringCol, 8, R):vr([ringCol[0]-20,ringCol[1]-20,ringCol[2]-20], 8, R); });
+  tileGen(sideIdx, (x, y, R) => (x%4===0 || x%7===3)? [barkCol[0]-20, barkCol[1]-16, barkCol[2]-12]: vr(barkCol, 10, R));
 }
-ore(14, [32,32,34],  [[3,3],[4,3],[3,4],[10,2],[11,2],[11,3],[6,8],[7,8],[7,9],[6,9],[12,10],[12,11],[13,11],[2,12],[3,12],[8,13]]);
-ore(15, [240,204,64],[[4,2],[5,2],[5,3],[11,5],[12,5],[11,6],[3,9],[4,9],[4,10],[9,11],[10,11],[10,12],[13,12],[7,6]]);
-ore(16, [220,200,200],[[4,2],[5,2],[5,3],[11,5],[12,5],[11,6],[3,9],[4,9],[4,10],[9,11],[10,11],[10,12],[13,12],[7,6]]);
-ore(17, [40,240,240],[[3,3],[4,3],[3,4],[10,2],[11,2],[11,3],[6,8],[7,8],[7,9],[6,9],[12,10],[12,11],[13,11],[2,12],[3,12],[8,13]]);
-tileGen(18, (x, y, R) => vr([240,80,10], 12, R));
-tileGen(19, (x, y, R) => vr([180,40,40], 6, R));
+function genPlank(idx, col) { tileGen(idx, (x, y, R) => ((y % 4 === 3) || (x === ((((y / 4) | 0) % 2) ? 3 : 11))) ? [col[0]-30, col[1]-28, col[2]-24] : vr(col, 8, R)); }
+function genLeaves(idx, col) { tileGen(idx, (x, y, R) => R()<.3? vr(col, 15, R): vr([col[0]-20,col[1]-20,col[2]-20], 10, R)); }
+
+genLog(11, 12, [180,144,88], [108,84,52]); genPlank(13, [170,136,84]); genLeaves(14, [58,130,42]); // Oak
+genLog(15, 16, [200,180,140], [220,220,210]); genPlank(17, [210,195,160]); genLeaves(18, [80,150,60]); // Birch
+genLog(19, 20, [130,95,60], [60,45,30]); genPlank(21, [115,80,50]); genLeaves(22, [40,90,45]); // Spruce
+genLog(23, 24, [150,115,65], [90,75,40]); genPlank(25, [160,120,80]); // Jungle
+genLog(26, 27, [170,90,50], [100,90,80]); genPlank(28, [180,100,55]); // Acacia
+
+// Glass, Bricks & Stones
+tileGen(29, (x, y) => (x===0||y===0||x===15||y===15)? [206,232,244,215] : (x===y && x>3 && x<7)?[255,255,255,150]:[200,225,240,0]); // Glass
+tileGen(30, (x, y, R) => vr([40,50,60,230], 10, R)); // Tinted Glass
+tileGen(31, (x, y, R) => ((y%4===3)||(((x+((y/4|0)%2)*4)%8)===0))? vr([196,190,180],6,R):vr([160,74,58],14,R)); // Bricks
+tileGen(32, (x, y, R) => ((y%8===7)||(x%8===7))? vr([70,70,70],5,R):vr([150,150,150],10,R)); // Stone Bricks
+tileGen(33, (x, y, R) => R()<0.25? vr([60,120,50],15,R): vr([140,140,140],10,R)); // Mossy Stone Bricks
+tileGen(34, (x, y, R) => R()<0.15? vr([80,80,80],15,R): vr([140,140,140],10,R)); // Cracked Stone Bricks
+tileGen(35, (x, y, R) => (x===2||x===13||y===2||y===13)? vr([80,80,80],5,R):vr([140,140,140],10,R)); // Chiseled
+tileGen(36, (x, y, R) => vr([150,100,90], 15, R)); // Granite
+tileGen(37, (x, y, R) => vr([200,200,200], 15, R)); // Diorite
+tileGen(38, (x, y, R) => vr([130,135,135], 15, R)); // Andesite
+tileGen(39, (x, y, R) => vr([210,195,140], 8, R)); // Sandstone Top
+tileGen(40, (x, y, R) => (y===3||y===12)? vr([180,165,110],5,R):vr([210,195,140],8,R)); // Sandstone Side
+tileGen(41, (x, y, R) => vr([170,85,40], 8, R)); // Red Sandstone Top
+tileGen(42, (x, y, R) => (y===3||y===12)? vr([140,65,20],5,R):vr([170,85,40],8,R)); // Red Sandstone Side
+tileGen(43, (x, y, R) => vr([80,130,120], 12, R)); // Prismarine
+tileGen(44, (x, y, R) => vr([50,20,30], 10, R)); // Nether Bricks
+tileGen(45, (x, y, R) => vr([220,225,160], 12, R)); // End Stone
+tileGen(46, (x, y, R) => vr([25,18,38], 12, R)); // Obsidian
+
+// Ores & Minerals
+function genOre(idx, col) { tileGen(idx, (x, y, R) => (R()<0.08)? vr(col, 15, R) : vr([128,128,128], 11, R)); }
+genOre(47, [30,30,30]); genOre(48, [210,180,140]); genOre(49, [240,200,50]); genOre(50, [100,220,240]); // Coal, Iron, Gold, Diamond
+genOre(51, [50,220,100]); genOre(52, [220,30,30]); genOre(53, [40,80,200]); genOre(54, [180,100,60]); // Emerald, Redstone, Lapis, Copper
+tileGen(55, (x, y, R) => vr([140,70,210], 15, R)); // Amethyst
+tileGen(56, (x, y, R) => vr([50,50,50], 30, R)); // Bedrock
+
+// Mineral Blocks & Lights
+tileGen(57, (x,y,R)=>vr([30,30,30],5,R)); tileGen(58, (x,y,R)=>vr([200,200,200],5,R));
+tileGen(59, (x,y,R)=>vr([240,210,60],5,R)); tileGen(60, (x,y,R)=>vr([120,240,250],5,R));
+tileGen(61, (x,y,R)=>vr([80,240,140],5,R)); tileGen(62, (x,y,R)=>vr([200,20,20],8,R));
+tileGen(63, (x,y,R)=>vr([30,60,160],5,R)); tileGen(64, (x,y,R)=>vr([180,100,60],5,R));
+tileGen(65, (x,y,R)=>vr([230,190,90],25,R)); // Glowstone
+tileGen(66, (x,y,R)=>vr([200,235,235],10,R)); // Sea Lantern
+
+// Decorative
+tileGen(67, (x,y,R)=>{
+  if (y<2||y>13||y===7||y===8) return vr([170,136,84],6,R);
+  const bCols = [[180,40,40],[40,120,180],[40,160,60]];
+  return vr(bCols[((x/5)|0)%3],10,R);
+}); // Bookshelf Side Fixed!
+tileGen(68, (x,y,R)=>vr([170,136,84],6,R)); // Bookshelf Top
+tileGen(69, (x,y,R)=>vr([150,110,70],10,R)); // Crafting Top
+tileGen(70, (x,y,R)=>(x===0||x===15||y===0||y===15)?vr([100,70,40],5,R):vr([160,120,80],10,R)); // Crafting Side
+tileGen(71, (x,y,R)=>vr([90,90,90],10,R)); // Furnace Side
+tileGen(72, (x,y,R)=>(x>3&&x<12&&y>4&&y<11)?vr([20,20,20],5,R):vr([90,90,90],10,R)); // Furnace Front
+tileGen(73, (x,y,R)=>vr([200,120,20],8,R)); // Pumpkin Top
+tileGen(74, (x,y,R)=>vr([210,130,20],10,R)); // Pumpkin Side
+tileGen(75, (x,y,R)=>(x>3&&x<12&&y>4&&y<11)?vr([255,220,80],5,R):vr([210,130,20],10,R)); // Jack O Lantern
+tileGen(76, (x,y,R)=>vr([130,180,40],10,R)); // Melon Top
+tileGen(77, (x,y,R)=>(x%4===0)?vr([80,130,30],5,R):vr([130,180,40],10,R)); // Melon Side
+tileGen(78, (x,y,R)=>vr([210,190,50],12,R)); // Hay Top
+tileGen(79, (x,y,R)=>(y%3===0)?vr([160,140,30],5,R):vr([210,190,50],10,R)); // Hay Side
+tileGen(80, (x,y,R)=>vr([20,130,30],10,R)); // Cactus Top
+tileGen(81, (x,y,R)=>(x%4===0)?vr([10,90,20],5,R):vr([30,150,40],10,R)); // Cactus Side
+tileGen(82, (x,y,R)=>vr([242,246,250],5,R)); // Snow Block
+tileGen(83, (x,y,R)=>[160,200,245,200]); // Ice
+tileGen(84, (x,y,R)=>vr([140,180,240],8,R)); // Packed Ice
+tileGen(85, (x,y,R)=>vr([100,150,240],5,R)); // Blue Ice
+
+// 16 Wools & Concretes
+const woolCols = [
+  [235,235,235],[230,120,40],[190,70,180],[100,160,220],[220,200,50],[110,185,40],[220,140,160],[70,75,78],
+  [140,145,145],[40,130,150],[120,50,180],[50,60,170],[100,60,35],[80,100,35],[160,40,40],[20,20,25]
+];
+for(let i=0; i<16; i++) {
+  tileGen(86 + i, (x,y,R)=>vr(woolCols[i], 8, R)); 
+  tileGen(102 + i, (x,y,R)=>vr(woolCols[i], 2, R)); 
+}
+
+// Misc
+tileGen(111, (x,y,R)=>vr([235,230,225], 4, R)); // Quartz Block
+tileGen(112, (x,y,R)=>vr([245,242,240], 2, R)); // Smooth Quartz
+tileGen(113, (x,y,R)=>vr([200,40,30], 8, R)); // TNT Top
+tileGen(114, (x,y,R)=>(y>4&&y<11)?vr([240,240,240],2,R):vr([200,40,30],8,R)); // TNT Side
+tileGen(115, (x,y,R)=>[38,96,205,178]); // Water
+tileGen(116, (x,y,R)=>vr([240,80,10], 12, R)); // Lava
+
 actx.putImageData(aimg, 0, 0);
 
 function tileColor(t) {
@@ -295,7 +360,7 @@ function tileColor(t) {
   return [.7, .7, .7];
 }
 
-/* ============================== noise & world ============================== */
+/* ============================== WORLD & GENERATION ============================== */
 function hash2(x, y, s) {
   let h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1442695041)) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -334,6 +399,58 @@ function gm(x, y, z) {
   return world[x + W * (z + D * y)];
 }
 
+/* ============================== VILLAGE GENERATOR ============================== */
+function spawnHouse(sx, sy, sz) {
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dz = -2; dz <= 2; dz++) {
+      for (let dy = 0; dy <= 4; dy++) {
+        const xx = sx + dx, yy = sy + dy, zz = sz + dz;
+        if (xx < 0 || zz < 0 || xx >= W || zz >= D || yy >= H) continue;
+        if (dy === 0) { world[wIdx(xx, yy, zz)] = COBBLE; continue; }
+        const isCorner = (Math.abs(dx) === 2 && Math.abs(dz) === 2);
+        const isWall = (Math.abs(dx) === 2 || Math.abs(dz) === 2);
+        if (dy === 4) world[wIdx(xx, yy, zz)] = OAK_PLANKS;
+        else if (isCorner) world[wIdx(xx, yy, zz)] = OAK_LOG;
+        else if (isWall) {
+          if (dy === 1 && dx === 0 && dz === 2) world[wIdx(xx, yy, zz)] = AIR;
+          else if (dy === 2 && Math.abs(dx) === 2 && dz === 0) world[wIdx(xx, yy, zz)] = GLASS;
+          else world[wIdx(xx, yy, zz)] = COBBLE;
+        } else world[wIdx(xx, yy, zz)] = AIR;
+      }
+    }
+  }
+  world[wIdx(sx, sy + 3, sz)] = GLOWSTONE;
+}
+
+function generateVillages(s) {
+  const numVillages = 3;
+  for (let v = 0; v < numVillages; v++) {
+    const vcx = 40 + Math.floor(hash2(v * 29, s, 111) * (W - 80));
+    const vcz = 40 + Math.floor(hash2(s, v * 37, 222) * (D - 80));
+    const vgh = groundH[vcx + vcz * W];
+    if (vgh <= SEA + 2 || vgh >= 52) continue;
+
+    const houseCount = 4 + Math.floor(hash2(v, s, 333) * 3);
+    for (let h = 0; h < houseCount; h++) {
+      const angle = (h / houseCount) * Math.PI * 2 + hash2(h, v, s) * 0.5;
+      const dist = 7 + Math.floor(hash2(v, h, s * 3) * 10);
+      const hx = Math.floor(vcx + Math.cos(angle) * dist);
+      const hz = Math.floor(vcz + Math.sin(angle) * dist);
+      const hgh = groundH[hx + hz * W];
+      if (hgh > SEA + 2 && hgh < 55) {
+        spawnHouse(hx, hgh, hz);
+        let steps = Math.hypot(hx - vcx, hz - vcz);
+        for (let step = 0; step <= steps; step++) {
+          let px = Math.floor(vcx + (hx - vcx) * (step / steps));
+          let pz = Math.floor(vcz + (hz - vcz) * (step / steps));
+          let py = groundH[px + pz * W];
+          if (py > SEA) world[wIdx(px, py, pz)] = GRAVEL;
+        }
+      }
+    }
+  }
+}
+
 function generate(s) {
   seed = s;
   world.fill(0);
@@ -348,24 +465,26 @@ function generate(s) {
     h = Math.floor(Math.max(2, Math.min(H - 10, h)));
     groundH[x + z * W] = h;
     const beach = h <= SEA + 1;
-    const topB = beach ? SAND : (h >= 55 ? SNOW : GRASS);
+    const topB = beach ? SAND : (h >= 55 ? SNOW_BLOCK : GRASS);
     for (let y = 0; y <= h; y++) {
       let b;
       if (y === h) b = topB;
-      else if (y > h - 4) b = topB === SAND ? SAND : (topB === SNOW ? STONE : DIRT);
+      else if (y > h - 4) b = topB === SAND ? SAND : (topB === SNOW_BLOCK ? STONE : DIRT);
       else {
         b = STONE;
         const r = hash2(x * 31 + y * 7, z * 17 + y * 13, s + 999);
-        if (y < 50 && r < .016) b = COAL;
-        else if (y < 40 && r > .985 && r <= .995) b = IRON;
-        else if (y < 30 && r > .995) b = GOLD;
-        else if (y < 18 && r > .97 && r <= .985) b = DIAMOND;
+        if (y < 50 && r < .016) b = COAL_ORE;
+        else if (y < 40 && r > .985 && r <= .995) b = IRON_ORE;
+        else if (y < 30 && r > .995) b = GOLD_ORE;
+        else if (y < 18 && r > .97 && r <= .985) b = DIAMOND_ORE;
       }
-      if (y === 0) b = STONE;
+      if (y === 0) b = BEDROCK;
       world[x + W * (z + D * y)] = b;
     }
     for (let y = h + 1; y <= SEA; y++) world[x + W * (z + D * y)] = WATER;
   }
+
+  // Trees
   const tg = new Uint8Array(W * D);
   for (let z = 3; z < D - 3; z++) for (let x = 3; x < W - 3; x++) {
     const h = groundH[x + z * W];
@@ -377,7 +496,7 @@ function generate(s) {
     if (near) continue;
     tg[x + z * W] = 1;
     const th = 4 + Math.floor(hash2(x, z, s + 21) * 3), top = h + th;
-    for (let i = 1; i <= th; i++) world[wIdx(x, h + i, z)] = LOG;
+    for (let i = 1; i <= th; i++) world[wIdx(x, h + i, z)] = OAK_LOG;
     for (let dy = -2; dy <= 1; dy++) {
       const yy = top + dy, r = dy <= -1 ? 2 : 1;
       for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
@@ -387,13 +506,17 @@ function generate(s) {
         const xx = x + dx, zz = z + dz;
         if (xx < 0 || zz < 0 || xx >= W || zz >= D || yy >= H) continue;
         const ii = wIdx(xx, yy, zz);
-        if (world[ii] === AIR) world[ii] = LEAVES;
+        if (world[ii] === AIR) world[ii] = OAK_LEAVES;
       }
     }
   }
+
+  generateVillages(s);
+
   for (const k in edits) world[+k] = edits[k];
   computeHM();
 }
+
 function computeHM() {
   for (let z = 0; z < D; z++) for (let x = 0; x < W; x++) {
     let y = H - 1;
@@ -401,6 +524,7 @@ function computeHM() {
     hm[x + z * W] = y;
   }
 }
+
 function findSpawn() {
   const cx = W >> 1, cz = D >> 1;
   for (let r = 0; r < 120; r++) for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
@@ -415,7 +539,7 @@ function findSpawn() {
   return [cx + .5, SEA + 3, cz + .5];
 }
 
-/* ============================== chunk meshing ============================== */
+/* ============================== CHUNK MESHING ============================== */
 const FACES = (() => {
   const out = [];
   for (let a = 0; a < 3; a++) for (const s of [1, -1]) {
@@ -488,7 +612,11 @@ function meshChunk(c) {
         if (OPAQUE[nb] || nb === b) continue;
         let sky = 1;
         if (ny >= 0 && ny < H && nx >= 0 && nz >= 0 && nx < W && nz < D && ny <= hm[nx + nz * W]) sky = .58;
-        const base = F.shade * sky;
+        
+        let blockLight = BLOCKS[b].light || 0;
+        if (BLOCKS[nb] && BLOCKS[nb].light) blockLight = Math.max(blockLight, BLOCKS[nb].light);
+
+        const base = Math.min(1.0, (F.shade * sky) + blockLight);
         let l0 = base, l1 = base, l2 = base, l3 = base, flip = false;
         if (opq) {
           for (let i = 0; i < 4; i++) {
@@ -517,7 +645,7 @@ function meshChunk(c) {
   c.dirty = false;
 }
 
-/* ============================== WebGL setup ============================== */
+/* ============================== WebGL SETUP ============================== */
 let gl = canvas.getContext('webgl', {antialias: true, alpha: false, powerPreference: 'high-performance'})
       || canvas.getContext('experimental-webgl');
 if (!gl) {
@@ -669,7 +797,7 @@ const oceanVB = gl.createBuffer();
 })();
 const ptVB = gl.createBuffer(), handVB = gl.createBuffer();
 
-/* ============================== math ============================== */
+/* ============================== MATH ============================== */
 const IDENT = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 function mul(a, b) {
   const o = new Float32Array(16);
@@ -713,20 +841,23 @@ function inFrustum(P, x0, y0, z0, x1, y1, z1) {
   return true;
 }
 
-/* ============================== game state ============================== */
+/* ============================== GAME STATE ============================== */
 let state = 'loading';
 let intro = true, noLock = true, muted = false;
 let px = W / 2, py = 40, pz = D / 2, vx = 0, vy = 0, vz = 0, yaw = 0, pitch = -.15;
 let onGround = false, flying = false, sprinting = false, fovCur = 70, bobT = 0, bobAmp = 0;
 let tod = .12, dayF = 1, sky = [.47,.71,.98], tint = [1,1,1], sunDir = [0,1,0];
-const hotbar = [GRASS, LOG, STONE, PLANKS, GLASS, DIAMOND, IRON, LAVA, WOOL];
+
+// Hotbar now has 4 blocks slots + 1 Inventory Slot button
+const hotbar = [GRASS, STONE, OAK_PLANKS, GLOWSTONE];
 let sel = 0;
+
 const keys = {}, mouse = [false, false, false];
 let target = null, mineProg = 0, mineKey = '', mineCool = 0, placeCool = 0, swing = 0, lastSpace = 0;
 let saveT = 0, infoT = 0, fps = 60;
 const lookDir = () => { const cp = Math.cos(pitch); return [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp]; };
 
-/* ============================== UI helpers ============================== */
+/* ============================== UI HELPERS ============================== */
 function setState(s) {
   state = s;
   $('menu').classList.toggle('hidden', s !== 'menu');
@@ -766,7 +897,8 @@ function makeIcon(id) {
 const slotEls = [];
 function buildHotbar() {
   const hb = $('hotbar'); hb.innerHTML = ''; slotEls.length = 0;
-  for (let i = 0; i < 9; i++) {
+  // 4 block slots
+  for (let i = 0; i < 4; i++) {
     const s = document.createElement('div'); s.className = 'slot';
     const n = document.createElement('i'); n.textContent = i + 1;
     s.appendChild(n); s.appendChild(makeIcon(hotbar[i]));
@@ -774,6 +906,15 @@ function buildHotbar() {
     s.addEventListener('click', () => selectSlot(i));
     hb.appendChild(s); slotEls.push(s);
   }
+  // 5th Inventory button slot
+  const invBtn = document.createElement('div');
+  invBtn.className = 'slot inv-btn';
+  invBtn.textContent = '🎒';
+  invBtn.title = 'Open Bag / Palette';
+  invBtn.addEventListener('touchstart', (e) => { e.preventDefault(); openPalette(); });
+  invBtn.addEventListener('click', () => openPalette());
+  hb.appendChild(invBtn);
+
   refreshHotbar();
 }
 function refreshHotbar() { slotEls.forEach((s, i) => s.classList.toggle('sel', i === sel)); }
@@ -782,7 +923,8 @@ function setSlotBlock(i, id) {
   const s = slotEls[i], old = s.querySelector('canvas');
   s.replaceChild(makeIcon(id), old);
 }
-function selectSlot(i) { sel = (i + 9) % 9; refreshHotbar(); rebuildHand(); showName(hotbar[sel]); }
+function selectSlot(i) { sel = (i + 4) % 4; refreshHotbar(); rebuildHand(); showName(hotbar[sel]); }
+
 function buildPalette() {
   const g = $('palGrid'); g.innerHTML = '';
   PLACEABLE.forEach(id => {
@@ -802,7 +944,7 @@ function rebuildHand() {
   gl.bufferData(gl.ARRAY_BUFFER, B.a, gl.DYNAMIC_DRAW);
 }
 
-/* ============================== audio ============================== */
+/* ============================== AUDIO ============================== */
 let audio = null;
 function ensureAudio() {
   if (audio) { if (audio.state === 'suspended' && audio.resume) audio.resume(); return; }
@@ -823,11 +965,11 @@ function sfx(kind) {
   } catch (e) { /* ignore */ }
 }
 
-/* ============================== save / load ============================== */
+/* ============================== SAVE / LOAD ============================== */
 function save() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      v: 1, seed, edits, p: [px, py, pz, yaw, pitch], hb: hotbar, sel, tod, fly: flying
+      v: 2, seed, edits, p: [px, py, pz, yaw, pitch], hb: hotbar, sel, tod, fly: flying
     }));
   } catch (e) {}
 }
@@ -835,7 +977,7 @@ function loadSave() {
   try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
 }
 
-/* ============================== physics ============================== */
+/* ============================== PHYSICS & AUTO-JUMP ============================== */
 function isSolidAt(x, y, z) {
   if (y < 0) return true;
   if (y >= H) return false;
@@ -854,11 +996,27 @@ const isLiquid = (x, y, z) => LIQ[getB(Math.floor(x), Math.floor(y), Math.floor(
 
 function moveStep(s) {
   let nx = px + vx * s;
-  if (collides(nx, py, pz)) { nx = vx > 0 ? Math.floor(nx + PW) - PW - 1e-4 : Math.floor(nx - PW) + 1 + PW + 1e-4; vx = 0; }
+  if (collides(nx, py, pz)) {
+    if (onGround && !collides(nx, py + 1.05, pz) && !collides(px, py + 1.05, pz)) {
+      py += 1.05;
+    } else {
+      nx = vx > 0 ? Math.floor(nx + PW) - PW - 1e-4 : Math.floor(nx - PW) + 1 + PW + 1e-4;
+      vx = 0;
+    }
+  }
   px = nx;
+
   let nz = pz + vz * s;
-  if (collides(px, py, nz)) { nz = vz > 0 ? Math.floor(nz + PW) - PW - 1e-4 : Math.floor(nz - PW) + 1 + PW + 1e-4; vz = 0; }
+  if (collides(px, py, nz)) {
+    if (onGround && !collides(px, py + 1.05, nz) && !collides(px, py + 1.05, pz)) {
+      py += 1.05;
+    } else {
+      nz = vz > 0 ? Math.floor(nz + PW) - PW - 1e-4 : Math.floor(nz - PW) + 1 + PW + 1e-4;
+      vz = 0;
+    }
+  }
   pz = nz;
+
   let ny = py + vy * s; onGround = false;
   if (collides(px, ny, pz)) {
     if (vy < 0) { ny = Math.floor(ny) + 1 + 1e-4; onGround = true; if (flying) flying = false; }
@@ -867,6 +1025,7 @@ function moveStep(s) {
   }
   py = ny;
 }
+
 function physics(dt) {
   const fw = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0), sd = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
   const shift = keys.ShiftLeft || keys.ShiftRight;
@@ -897,7 +1056,7 @@ function physics(dt) {
   bobT += hs * dt * 1.7;
 }
 
-/* ============================== raycast & interaction ============================== */
+/* ============================== RAYCAST & WATER SPREAD ============================== */
 function raycast(ox, oy, oz, dx, dy, dz, maxD) {
   let x = Math.floor(ox), y = Math.floor(oy), z = Math.floor(oz);
   const sx = dx > 0 ? 1 : -1, sy = dy > 0 ? 1 : -1, sz = dz > 0 ? 1 : -1;
@@ -917,11 +1076,32 @@ function raycast(ox, oy, oz, dx, dy, dz, maxD) {
   return null;
 }
 const aabbOverlap = (x, y, z) => px + PW > x && px - PW < x + 1 && py + PH > y && py < y + 1 && pz + PW > z && pz - PW < z + 1;
+
+function checkWaterSpread(x, y, z) {
+  const neighbors = [[x+1,y,z], [x-1,y,z], [x,y+1,z], [x,y-1,z], [x,y,z+1], [x,y,z-1]];
+  let waterFound = false;
+  for (let [nx, ny, nz] of neighbors) {
+    if (getB(nx, ny, nz) === WATER) { waterFound = true; break; }
+  }
+  if (waterFound) {
+    setBlock(x, y, z, WATER, true);
+    setTimeout(() => {
+      const spreadTargets = [[x+1,y,z], [x-1,y,z], [x,y-1,z], [x,y,z+1], [x,y,z-1]];
+      for (let [cx, cy, cz] of spreadTargets) {
+        const b = getB(cx, cy, cz);
+        if (b === AIR) checkWaterSpread(cx, cy, cz);
+      }
+    }, 120);
+  }
+}
+
 function breakBlock(t) {
   spawnParticles(t.x, t.y, t.z, t.b);
   setBlock(t.x, t.y, t.z, AIR);
   sfx('break');
+  checkWaterSpread(t.x, t.y, t.z);
 }
+
 function placeBlock() {
   if (!target) return;
   const x = target.x + target.nx, y = target.y + target.ny, z = target.z + target.nz;
@@ -933,6 +1113,7 @@ function placeBlock() {
   setBlock(x, y, z, id);
   swing = 1; sfx('place');
 }
+
 function interact(dt) {
   swing = Math.max(0, swing - dt * 3.2);
   mineCool -= dt; placeCool -= dt;
@@ -951,7 +1132,7 @@ function interact(dt) {
   if (mouse[2] && placeCool <= 0 && target) { placeBlock(); placeCool = .22; }
 }
 
-/* ============================== particles ============================== */
+/* ============================== PARTICLES ============================== */
 const parts = [];
 function spawnParticles(x, y, z, b) {
   const B = BLOCKS[b];
@@ -976,7 +1157,7 @@ function updateParticles(dt) {
   }
 }
 
-/* ============================== sky ============================== */
+/* ============================== SKY ============================== */
 const starDirs = [], starCol = [];
 for (let i = 0; i < 170; i++) {
   const x = Math.random() * 2 - 1, y = Math.random() * 2 - 1, z = Math.random() * 2 - 1, l = Math.hypot(x, y, z) || 1;
@@ -997,7 +1178,7 @@ function updateSky() {
   sunDir = [Math.cos(a) / l, sunH / l, .25 / l];
 }
 
-/* ============================== render ============================== */
+/* ============================== RENDER ============================== */
 const starBuf = new Float32Array(starDirs.length * 6);
 function drawPoints(arr, count, size, alpha, scale) {
   gl.bindBuffer(gl.ARRAY_BUFFER, ptVB);
@@ -1118,7 +1299,7 @@ function render(dt) {
   gl.disable(gl.BLEND);
 }
 
-/* ============================== update loop ============================== */
+/* ============================== UPDATE LOOP ============================== */
 function update(dt) {
   tod = (tod + dt / DAY_LEN) % 1;
   physics(dt);
@@ -1155,18 +1336,11 @@ function frame(now) {
   updateInfo(dt);
 }
 
-/* ============================== input & touch ============================== */
+/* ============================== INPUT & TOUCH ============================== */
 function startPlaying() {
   ensureAudio();
   intro = false;
   setState('playing');
-}
-function pauseGame() {
-  if (state !== 'playing') return;
-  setState('menu');
-  for (const k in keys) keys[k] = false;
-  mouse[0] = mouse[1] = mouse[2] = false;
-  save();
 }
 function openPalette() {
   if (state !== 'playing') return;
@@ -1179,8 +1353,6 @@ function closePalette() {
 
 $('playBtn').addEventListener('click', startPlaying);
 $('palClose').addEventListener('click', closePalette);
-$('btnPal').addEventListener('touchstart', (e) => { e.preventDefault(); openPalette(); });
-$('btnPal').addEventListener('click', openPalette);
 
 let newArmed = 0;
 $('newBtn').addEventListener('click', () => {
@@ -1195,7 +1367,7 @@ $('newBtn').addEventListener('click', () => {
   buildWorld(Math.floor(Math.random() * 1e9), null);
 });
 
-// Setup Touch Buttons
+// Setup Touch Movement
 function bindTouchKey(id, code) {
   const el = $(id);
   const press = (e) => { e.preventDefault(); keys[code] = true; };
@@ -1209,7 +1381,30 @@ bindTouchKey('btnW', 'KeyW');
 bindTouchKey('btnS', 'KeyS');
 bindTouchKey('btnA', 'KeyA');
 bindTouchKey('btnD', 'KeyD');
-bindTouchKey('btnJump', 'Space');
+
+// JUMP BUTTON: Single Tap = Jump, Double Tap = Fly Toggle
+let lastJumpTap = 0;
+const btnJump = $('btnJump');
+const handleJumpStart = (e) => {
+  e.preventDefault();
+  const now = Date.now();
+  if (now - lastJumpTap < 300) {
+    flying = !flying;
+    vy = 0;
+    toast(flying ? 'Fly On' : 'Fly Off', 1000);
+  } else {
+    keys['Space'] = true;
+  }
+  lastJumpTap = now;
+};
+const handleJumpEnd = (e) => {
+  e.preventDefault();
+  keys['Space'] = false;
+};
+btnJump.addEventListener('touchstart', handleJumpStart);
+btnJump.addEventListener('touchend', handleJumpEnd);
+btnJump.addEventListener('mousedown', handleJumpStart);
+btnJump.addEventListener('mouseup', handleJumpEnd);
 
 function bindTouchMouse(id, btnIndex) {
   const el = $(id);
@@ -1223,19 +1418,12 @@ function bindTouchMouse(id, btnIndex) {
 bindTouchMouse('btnBreak', 0);
 bindTouchMouse('btnPlace', 2);
 
-$('btnFly').addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  flying = !flying; vy = 0;
-  toast(flying ? 'Fly On' : 'Fly Off', 1000);
-});
-
 // Dragging to Look Around
 let touchLookId = null, lastTX = 0, lastTY = 0;
 window.addEventListener('touchstart', e => {
   if (state !== 'playing') return;
   for (let i = 0; i < e.changedTouches.length; i++) {
     const t = e.changedTouches[i];
-    // If touched area is not on buttons
     if (!t.target.closest('.t-btn') && !t.target.closest('#hotbar')) {
       touchLookId = t.identifier;
       lastTX = t.clientX;
@@ -1268,7 +1456,7 @@ window.addEventListener('touchend', e => {
   }
 });
 
-// Mouse Look Fallback for Desktop
+// PC Mouse Fallback
 document.addEventListener('mousemove', e => {
   if (state !== 'playing' || document.pointerLockElement !== canvas) return;
   yaw -= (e.movementX || 0) * .0022;
@@ -1293,17 +1481,17 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-/* ============================== world build / boot ============================== */
+/* ============================== BOOT / BUILD WORLD ============================== */
 const nextFrame = () => new Promise(r => requestAnimationFrame(() => r()));
 async function buildWorld(newSeed, sv) {
   setState('loading');
   $('loadFill').style.width = '0%';
-  $('loadMsg').textContent = 'Shaping terrain...';
+  $('loadMsg').textContent = 'Shaping terrain & 100+ blocks...';
   await nextFrame(); await nextFrame();
   edits = (sv && sv.edits) ? sv.edits : {};
   generate(newSeed);
   dirtyList.clear();
-  $('loadMsg').textContent = 'Building chunks...';
+  $('loadMsg').textContent = 'Building chunks & villages...';
   for (let i = 0; i < chunks.length; i++) {
     meshChunk(chunks[i]);
     if (i % 4 === 3) { $('loadFill').style.width = Math.round((i + 1) / chunks.length * 100) + '%'; await nextFrame(); }
@@ -1316,8 +1504,8 @@ async function buildWorld(newSeed, sv) {
     if (Array.isArray(sv.p) && sv.p.length === 5 && sv.p.every(Number.isFinite)) {
       px = clamp(sv.p[0], 1, W - 1); py = clamp(sv.p[1], 1, H - 2); pz = clamp(sv.p[2], 1, D - 1); yaw = sv.p[3]; pitch = clamp(sv.p[4], -1.55, 1.55);
     }
-    if (Array.isArray(sv.hb) && sv.hb.length === 9 && sv.hb.every(id => BLOCKS[id] && !BLOCKS[id].liquid)) sv.hb.forEach((id, i) => { hotbar[i] = id; });
-    if (Number.isFinite(sv.sel)) sel = clamp(sv.sel | 0, 0, 8);
+    if (Array.isArray(sv.hb) && sv.hb.length === 4 && sv.hb.every(id => BLOCKS[id] && !BLOCKS[id].liquid)) sv.hb.forEach((id, i) => { hotbar[i] = id; });
+    if (Number.isFinite(sv.sel)) sel = clamp(sv.sel | 0, 0, 3);
     if (Number.isFinite(sv.tod)) tod = sv.tod;
     flying = !!sv.fly;
   }
