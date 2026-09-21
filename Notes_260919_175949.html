@@ -44,7 +44,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 .t-btn{position:absolute;background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.5);
   color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;
   font-size:18px;font-weight:bold;pointer-events:auto;user-select:none;-webkit-user-select:none;
-  touch-action:none;active{background:rgba(255,255,255,0.4)}}
+  touch-action:none}
 .t-btn:active{background:rgba(255,255,255,0.4)}
 
 /* D-Pad Left Side */
@@ -158,8 +158,8 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 
 /* ============================== constants ============================== */
-const CS = 16, CXN = 16, CZN = 16;          // Chunk size: Expanded to 16x16 chunks (256x256 blocks)
-const W = CXN * CS, D = CZN * CS, H = 96;   // World dimensions: 256 x 256, Height: 96
+const CS = 16, CXN = 63, CZN = 63;          // Chunk size: Expanded to 63x63 chunks (1008x1008 blocks)
+const W = CXN * CS, D = CZN * CS, H = 96;   // World dimensions: 1008 x 1008, Height: 96
 const SEA = 22;                             // Water fills up to this y
 const TS = 16, AT = 8, ATW = TS * AT;       // Texture tile size, atlas tiles per row, atlas px
 const EYE = 1.62, PW = 0.3, PH = 1.8, REACH = 5.5, DAY_LEN = 360;
@@ -167,7 +167,8 @@ const SAVE_KEY = 'minicraft-single-file-v1';
 
 /* ============================== blocks ============================== */
 const AIR=0, GRASS=1, DIRT=2, STONE=3, COBBLE=4, SAND=5, LOG=6, LEAVES=7, PLANKS=8,
-      WATER=9, GLASS=10, BRICK=11, SNOW=12, COAL=13, GOLD=14;
+      WATER=9, GLASS=10, BRICK=11, SNOW=12, COAL=13, GOLD=14,
+      IRON=15, DIAMOND=16, LAVA=17, WOOL=18;
 
 const BLOCKS = [
   null,
@@ -185,6 +186,10 @@ const BLOCKS = [
   {n:'Snow',        t:[13,13,13], h:.3},
   {n:'Coal Ore',    t:[14,14,14], h:2},
   {n:'Gold Ore',    t:[15,15,15], h:2.5},
+  {n:'Iron Ore',    t:[16,16,16], h:2.5},
+  {n:'Diamond Ore', t:[17,17,17], h:3},
+  {n:'Lava',        t:[18,18,18], liquid:true},
+  {n:'Red Wool',    t:[19,19,19], h:0.8}
 ];
 const OPAQUE = new Uint8Array(256), SOLID = new Uint8Array(256), LIQ = new Uint8Array(256);
 for (let i = 1; i < BLOCKS.length; i++) {
@@ -275,6 +280,10 @@ function ore(idx, col, pts) {
 }
 ore(14, [32,32,34],  [[3,3],[4,3],[3,4],[10,2],[11,2],[11,3],[6,8],[7,8],[7,9],[6,9],[12,10],[12,11],[13,11],[2,12],[3,12],[8,13]]);
 ore(15, [240,204,64],[[4,2],[5,2],[5,3],[11,5],[12,5],[11,6],[3,9],[4,9],[4,10],[9,11],[10,11],[10,12],[13,12],[7,6]]);
+ore(16, [220,200,200],[[4,2],[5,2],[5,3],[11,5],[12,5],[11,6],[3,9],[4,9],[4,10],[9,11],[10,11],[10,12],[13,12],[7,6]]);
+ore(17, [40,240,240],[[3,3],[4,3],[3,4],[10,2],[11,2],[11,3],[6,8],[7,8],[7,9],[6,9],[12,10],[12,11],[13,11],[2,12],[3,12],[8,13]]);
+tileGen(18, (x, y, R) => vr([240,80,10], 12, R));
+tileGen(19, (x, y, R) => vr([180,40,40], 6, R));
 actx.putImageData(aimg, 0, 0);
 
 function tileColor(t) {
@@ -347,7 +356,10 @@ function generate(s) {
       else {
         b = STONE;
         const r = hash2(x * 31 + y * 7, z * 17 + y * 13, s + 999);
-        if (y < 50 && r < .016) b = COAL; else if (y < 30 && r > .995) b = GOLD;
+        if (y < 50 && r < .016) b = COAL;
+        else if (y < 40 && r > .985 && r <= .995) b = IRON;
+        else if (y < 30 && r > .995) b = GOLD;
+        else if (y < 18 && r > .97 && r <= .985) b = DIAMOND;
       }
       if (y === 0) b = STONE;
       world[x + W * (z + D * y)] = b;
@@ -707,7 +719,7 @@ let intro = true, noLock = true, muted = false;
 let px = W / 2, py = 40, pz = D / 2, vx = 0, vy = 0, vz = 0, yaw = 0, pitch = -.15;
 let onGround = false, flying = false, sprinting = false, fovCur = 70, bobT = 0, bobAmp = 0;
 let tod = .12, dayF = 1, sky = [.47,.71,.98], tint = [1,1,1], sunDir = [0,1,0];
-const hotbar = [GRASS, DIRT, STONE, COBBLE, PLANKS, LOG, GLASS, BRICK, SAND];
+const hotbar = [GRASS, LOG, STONE, PLANKS, GLASS, DIAMOND, IRON, LAVA, WOOL];
 let sel = 0;
 const keys = {}, mouse = [false, false, false];
 let target = null, mineProg = 0, mineKey = '', mineCool = 0, placeCool = 0, swing = 0, lastSpace = 0;
