@@ -83,12 +83,15 @@ button.big{background:#5a9038;box-shadow:inset 3px 3px 0 #8fce61,inset -3px -3px
 #loadMsg{font-size:13px;color:#bdbdbd;min-height:16px}
 .hint{font-size:13px;color:#bdbdbd}
 
-/* Expanded Scrollable Palette Grid */
-#palGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px;
-  justify-content:center;margin:14px 0 8px;max-height:60vh;overflow-y:auto;padding:6px;background:#1e1e1e;border:2px solid #000}
+/* Palette Paginated Grid & Controls */
+#palGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;
+  justify-content:center;margin:10px 0;min-height:220px;padding:8px;background:#1e1e1e;border:2px solid #000}
 .pitem{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:2px solid #4a4a4a;
-  background:rgba(130,130,130,.25);cursor:pointer;font-size:9px;line-height:1.1;min-height:66px}
+  background:rgba(130,130,130,.25);cursor:pointer;font-size:9px;line-height:1.1;min-height:68px}
 .pitem canvas{width:32px;height:32px;image-rendering:pixelated}
+.pal-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px}
+.pal-nav button{padding:6px 14px;font-size:14px}
+.pal-nav span{font-size:14px;color:#ffd35a}
 @media (max-width:560px){.controls{grid-template-columns:1fr}}
 </style>
 </head>
@@ -122,7 +125,12 @@ button.big{background:#5a9038;box-shadow:inset 3px 3px 0 #8fce61,inset -3px -3px
     <h2>Select Block (100+ Available)</h2>
     <p class="hint">Tap a block to put it in your active hotbar slot</p>
     <div id="palGrid"></div>
-    <button id="palClose">Close</button>
+    <div class="pal-nav">
+      <button id="palPrev">◀ Prev</button>
+      <span id="palPageNum">Page 1 / 5</span>
+      <button id="palNext">Next ▶</button>
+    </div>
+    <div style="margin-top:10px;"><button id="palClose">Close</button></div>
   </div>
 </div>
 
@@ -193,7 +201,7 @@ const BLOCKS = [
   {n:'Gold Ore', t:[49,49,49], h:2.5}, {n:'Diamond Ore', t:[50,50,50], h:3}, {n:'Emerald Ore', t:[51,51,51], h:3}, {n:'Redstone Ore', t:[52,52,52], h:2},
   {n:'Lapis Ore', t:[53,53,53], h:2.5}, {n:'Copper Ore', t:[54,54,54], h:2}, {n:'Amethyst Block', t:[55,55,55], h:2}, {n:'Bedrock', t:[56,56,56], h:99},
   {n:'Coal Block', t:[57,57,57], h:2}, {n:'Iron Block', t:[58,58,58], h:3}, {n:'Gold Block', t:[59,59,59], h:3}, {n:'Diamond Block', t:[60,60,60], h:4},
-  {n:'Emerald Block', t:[61,61,61], h:4}, {n:'Redstone Block', t:[62,62,62], h:2, light:0.6}, {n:'Lapis Block', t:[63,63,63], h:3}, {n:'Copper Block', t:[64,64,64], h:2.5},
+  {n:'Emerald Block', t:[61,61,61], h:4}, {n:'Redstone Block', t:[62,62,62], h:2, light:0.7}, {n:'Lapis Block', t:[63,63,63], h:3}, {n:'Copper Block', t:[64,64,64], h:2.5},
   {n:'Glowstone', t:[65,65,65], h:1, light:1.0}, {n:'Sea Lantern', t:[66,66,66], h:1, light:1.0}, {n:'Bookshelf', t:[67,67,68], h:1.5}, {n:'Crafting Table', t:[70,69,13], h:1.5},
   {n:'Furnace', t:[72,71,71], h:2}, {n:'Pumpkin', t:[74,74,73], h:1}, {n:'Jack o Lantern', t:[75,74,73], h:1, light:1.0}, {n:'Melon Block', t:[77,77,76], h:1},
   {n:'Hay Bale', t:[79,79,78], h:1}, {n:'Cactus', t:[81,81,80], h:1}, {n:'Snow Block', t:[82,82,82], h:.3}, {n:'Ice', t:[83,83,83], h:.3, clear:true},
@@ -360,7 +368,7 @@ function tileColor(t) {
   return [.7, .7, .7];
 }
 
-/* ============================== WORLD & GENERATION ============================== */
+/* ============================== WORLD, LIGHT & GENERATION ============================== */
 function hash2(x, y, s) {
   let h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1442695041)) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -382,6 +390,7 @@ const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 
 const world = new Uint8Array(W * D * H);
+const lightMap = new Uint8Array(W * D * H); // Dynamic Light Propagation Map
 const hm = new Uint8Array(W * D);
 const groundH = new Uint8Array(W * D);
 let seed = 1;
@@ -397,6 +406,43 @@ function gm(x, y, z) {
   if (y >= H) return 0;
   if (x < 0 || z < 0 || x >= W || z >= D) return STONE;
   return world[x + W * (z + D * y)];
+}
+
+/* Dynamic BFS Light Propagation System */
+function computeLight() {
+  lightMap.fill(0);
+  const q = [];
+  for (let i = 0; i < world.length; i++) {
+    const b = world[i];
+    if (b && BLOCKS[b] && BLOCKS[b].light) {
+      lightMap[i] = Math.floor(BLOCKS[b].light * 15);
+      q.push(i);
+    }
+  }
+  let head = 0;
+  while (head < q.length) {
+    const idx = q[head++];
+    const l = lightMap[idx];
+    if (l <= 1) continue;
+
+    const x = idx % W;
+    const z = ((idx / W) | 0) % D;
+    const y = (idx / (W * D)) | 0;
+
+    const nbrs = [[x+1, y, z], [x-1, y, z], [x, y+1, z], [x, y-1, z], [x, y, z+1], [x, y, z-1]];
+    for (let i = 0; i < 6; i++) {
+      const nx = nbrs[i][0], ny = nbrs[i][1], nz = nbrs[i][2];
+      if (nx < 0 || nz < 0 || nx >= W || nz >= D || ny < 0 || ny >= H) continue;
+      const nIdx = nx + W * (nz + D * ny);
+      const nb = world[nIdx];
+      if (OPAQUE[nb]) continue;
+
+      if (lightMap[nIdx] < l - 1) {
+        lightMap[nIdx] = l - 1;
+        q.push(nIdx);
+      }
+    }
+  }
 }
 
 /* ============================== VILLAGE GENERATOR ============================== */
@@ -515,6 +561,7 @@ function generate(s) {
 
   for (const k in edits) world[+k] = edits[k];
   computeHM();
+  computeLight();
 }
 
 function computeHM() {
@@ -613,8 +660,9 @@ function meshChunk(c) {
         let sky = 1;
         if (ny >= 0 && ny < H && nx >= 0 && nz >= 0 && nx < W && nz < D && ny <= hm[nx + nz * W]) sky = .58;
         
-        let blockLight = BLOCKS[b].light || 0;
-        if (BLOCKS[nb] && BLOCKS[nb].light) blockLight = Math.max(blockLight, BLOCKS[nb].light);
+        let bl = lightMap[x + W * (z + D * y)] / 15.0;
+        let nbl = (ny >= 0 && ny < H && nx >= 0 && nz >= 0 && nx < W && nz < D) ? (lightMap[nx + W * (nz + D * ny)] / 15.0) : 0;
+        let blockLight = Math.max(bl, nbl);
 
         const base = Math.min(1.0, (F.shade * sky) + blockLight);
         let l0 = base, l1 = base, l2 = base, l3 = base, flip = false;
@@ -761,6 +809,7 @@ function setBlock(x, y, z, b, record = true) {
     while (yy > 0 && !OPAQUE[world[x + W * (z + D * yy)]]) yy--;
     hm[c] = yy;
   }
+  computeLight();
   markDirty(x, z);
 }
 
@@ -848,7 +897,6 @@ let px = W / 2, py = 40, pz = D / 2, vx = 0, vy = 0, vz = 0, yaw = 0, pitch = -.
 let onGround = false, flying = false, sprinting = false, fovCur = 70, bobT = 0, bobAmp = 0;
 let tod = .12, dayF = 1, sky = [.47,.71,.98], tint = [1,1,1], sunDir = [0,1,0];
 
-// Hotbar now has 4 blocks slots + 1 Inventory Slot button
 const hotbar = [GRASS, STONE, OAK_PLANKS, GLOWSTONE];
 let sel = 0;
 
@@ -857,7 +905,7 @@ let target = null, mineProg = 0, mineKey = '', mineCool = 0, placeCool = 0, swin
 let saveT = 0, infoT = 0, fps = 60;
 const lookDir = () => { const cp = Math.cos(pitch); return [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp]; };
 
-/* ============================== UI HELPERS ============================== */
+/* ============================== UI HELPERS & PAGINATED PALETTE ============================== */
 function setState(s) {
   state = s;
   $('menu').classList.toggle('hidden', s !== 'menu');
@@ -897,7 +945,6 @@ function makeIcon(id) {
 const slotEls = [];
 function buildHotbar() {
   const hb = $('hotbar'); hb.innerHTML = ''; slotEls.length = 0;
-  // 4 block slots
   for (let i = 0; i < 4; i++) {
     const s = document.createElement('div'); s.className = 'slot';
     const n = document.createElement('i'); n.textContent = i + 1;
@@ -906,7 +953,6 @@ function buildHotbar() {
     s.addEventListener('click', () => selectSlot(i));
     hb.appendChild(s); slotEls.push(s);
   }
-  // 5th Inventory button slot
   const invBtn = document.createElement('div');
   invBtn.className = 'slot inv-btn';
   invBtn.textContent = '🎒';
@@ -925,9 +971,18 @@ function setSlotBlock(i, id) {
 }
 function selectSlot(i) { sel = (i + 4) % 4; refreshHotbar(); rebuildHand(); showName(hotbar[sel]); }
 
-function buildPalette() {
+/* PAGINATED INVENTORY SYSTEM */
+let palPage = 0;
+const PAL_PAGE_SIZE = 24;
+
+function renderPalette() {
   const g = $('palGrid'); g.innerHTML = '';
-  PLACEABLE.forEach(id => {
+  const totalPages = Math.ceil(PLACEABLE.length / PAL_PAGE_SIZE);
+  palPage = Math.max(0, Math.min(palPage, totalPages - 1));
+  $('palPageNum').textContent = `Page ${palPage + 1} / ${totalPages}`;
+  
+  const currentItems = PLACEABLE.slice(palPage * PAL_PAGE_SIZE, (palPage + 1) * PAL_PAGE_SIZE);
+  currentItems.forEach(id => {
     const d = document.createElement('div'); d.className = 'pitem'; d.title = BLOCKS[id].n;
     d.appendChild(makeIcon(id));
     const l = document.createElement('span'); l.textContent = BLOCKS[id].n; d.appendChild(l);
@@ -937,6 +992,18 @@ function buildPalette() {
     g.appendChild(d);
   });
 }
+
+function buildPalette() {
+  $('palPrev').addEventListener('click', () => {
+    if (palPage > 0) { palPage--; renderPalette(); }
+  });
+  $('palNext').addEventListener('click', () => {
+    const totalPages = Math.ceil(PLACEABLE.length / PAL_PAGE_SIZE);
+    if (palPage < totalPages - 1) { palPage++; renderPalette(); }
+  });
+  renderPalette();
+}
+
 function rebuildHand() {
   const B = {a: new Float32Array(6 * 36), n: 0}, blk = BLOCKS[hotbar[sel]];
   for (const F of FACES) emitFace(B, 0, 0, 0, F, blk.t[F.tileSel], F.shade, F.shade, F.shade, F.shade, 1, false);
@@ -1056,7 +1123,7 @@ function physics(dt) {
   bobT += hs * dt * 1.7;
 }
 
-/* ============================== RAYCAST & WATER SPREAD ============================== */
+/* ============================== RAYCAST & FIXED WATER SPREAD (MAX 7 BLOCKS) ============================== */
 function raycast(ox, oy, oz, dx, dy, dz, maxD) {
   let x = Math.floor(ox), y = Math.floor(oy), z = Math.floor(oz);
   const sx = dx > 0 ? 1 : -1, sy = dy > 0 ? 1 : -1, sz = dz > 0 ? 1 : -1;
@@ -1077,21 +1144,31 @@ function raycast(ox, oy, oz, dx, dy, dz, maxD) {
 }
 const aabbOverlap = (x, y, z) => px + PW > x && px - PW < x + 1 && py + PH > y && py < y + 1 && pz + PW > z && pz - PW < z + 1;
 
-function checkWaterSpread(x, y, z) {
-  const neighbors = [[x+1,y,z], [x-1,y,z], [x,y+1,z], [x,y-1,z], [x,y,z+1], [x,y,z-1]];
-  let waterFound = false;
-  for (let [nx, ny, nz] of neighbors) {
-    if (getB(nx, ny, nz) === WATER) { waterFound = true; break; }
-  }
-  if (waterFound) {
-    setBlock(x, y, z, WATER, true);
-    setTimeout(() => {
-      const spreadTargets = [[x+1,y,z], [x-1,y,z], [x,y-1,z], [x,y,z+1], [x,y,z-1]];
-      for (let [cx, cy, cz] of spreadTargets) {
-        const b = getB(cx, cy, cz);
-        if (b === AIR) checkWaterSpread(cx, cy, cz);
+/* Water flow limited strictly to 7 horizontal blocks */
+function checkWaterSpread(x, y, z, dist = 0) {
+  if (dist >= 7) return;
+  const neighbors = [
+    {pos: [x+1, y, z], down: false},
+    {pos: [x-1, y, z], down: false},
+    {pos: [x, y-1, z], down: true},
+    {pos: [x, y, z+1], down: false},
+    {pos: [x, y, z-1], down: false}
+  ];
+
+  if (getB(x, y+1, z) === WATER) dist = 0; // Vertical waterfall resets distance
+
+  for (let {pos: [nx, ny, nz], down} of neighbors) {
+    if (nx < 0 || nz < 0 || nx >= W || nz >= D || ny < 0 || ny >= H) continue;
+    const b = getB(nx, ny, nz);
+    if (b === AIR) {
+      const nextDist = down ? 0 : dist + 1;
+      if (nextDist <= 7) {
+        setBlock(nx, ny, nz, WATER, true);
+        setTimeout(() => {
+          checkWaterSpread(nx, ny, nz, nextDist);
+        }, 150);
       }
-    }, 120);
+    }
   }
 }
 
@@ -1099,7 +1176,15 @@ function breakBlock(t) {
   spawnParticles(t.x, t.y, t.z, t.b);
   setBlock(t.x, t.y, t.z, AIR);
   sfx('break');
-  checkWaterSpread(t.x, t.y, t.z);
+  
+  // Check nearby water to initiate flow
+  const nbrs = [[t.x+1,t.y,t.z],[t.x-1,t.y,t.z],[t.x,t.y+1,t.z],[t.x,t.y,t.z+1],[t.x,t.y,t.z-1]];
+  for (let [nx, ny, nz] of nbrs) {
+    if (getB(nx, ny, nz) === WATER) {
+      checkWaterSpread(t.x, t.y, t.z, 1);
+      break;
+    }
+  }
 }
 
 function placeBlock() {
@@ -1344,6 +1429,7 @@ function startPlaying() {
 }
 function openPalette() {
   if (state !== 'playing') return;
+  renderPalette();
   setState('palette');
 }
 function closePalette() {
